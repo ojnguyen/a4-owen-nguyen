@@ -1,0 +1,14 @@
+{
+  "name": "a4-owen-nguyen",
+  "version": "1.0.0",
+  "description": "WPI CS 4241 Assignment 4",
+  "author": "Owen Nguyen",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}
