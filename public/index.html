@@ -22,7 +22,42 @@
 </head>
 
 <body>
-  <h1>Audio Visualizer</h1>
+  <main>
+    <!-- All visuals happen here -->
+    <canvas id="visualizer" role="img" aria-label="Audio-reactive visualization"></canvas>
+  </main>
+
+  <!-- Help button, reopens instructions -->
+  <button id="help" type="button" aria-label="Show instructions">?</button>
+
+  <!-- Instructions + Start button -->
+  <dialog id="overlay" aria-labelledby="overlay-title" open>
+    <!-- aria-labelledby means the text of the element with id="overlay-title" is the label for the dialog -->
+    <h1 id="overlay-title">Audio Visualizer</h1>
+    <p>Play music anywhere on your computer and watch it come to life!</p>
+
+    <ol>
+      <li>Press <b>Start</b> and choose <b>Entire Screen</b> in the share dialog.</li>
+      <li>Tick <b>Share system audio</b>.
+      </li>
+      <li>Play some music anywhere on your computer!</li>
+    </ol>
+
+    <h2>Controls</h2>
+    <ul>
+      <li><b>Move</b> your pointer: pull particles toward it.</li>
+      <li><b>Click</b> your pointer: create a shockwave.</li>
+      <li><b>Panel</b> (top right): tweak sensitivity, looks, and particles.</li>
+      <li><b>?</b> (bottom left): reopen these instructions.</li>
+    </ul>
+
+    <p class="note">Works best in desktop Chrome or Edge. Nothing is recorded or saved.</p>
+
+    <button id="start" type="button">Start</button>
+    <p id="error" role="alert"></p>
+    <button id="demo" type="button" class="link">No audio to share? Play a demo sound instead</button>
+
+  </dialog>
 </body>
 
 </html>
