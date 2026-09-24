@@ -1,0 +1,7 @@
+body {
+  font-family: "Lato", system-ui, sans-serif;
+}
+
+button, input, select {
+  font: inherit;
+}
