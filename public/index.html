@@ -1,14 +1,17 @@
 <!doctype html>
-<html lang='en'>
+<html lang="en">
 
 <head>
   <title>Audio Visualizer</title>
-  <meta charset='utf-8' />
+  <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <!-- Learned from the reading, had to add this to make the page responsive -->
 
   <!-- Custom CSS -->
-  <link rel='stylesheet' href='main.css' />
+  <link rel="stylesheet" href="main.css" />
+
+  <!-- JS -->
+  <script type="module" src="main.js"></script>
 
   <!-- Font from Google Fonts: https://fonts.google.com/specimen/Lato?preview.script=Latn -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -31,7 +34,7 @@
   <button id="help" type="button" aria-label="Show instructions">?</button>
 
   <!-- Instructions + Start button -->
-  <dialog id="overlay" aria-labelledby="overlay-title" open>
+  <dialog id="overlay" aria-labelledby="overlay-title">
     <!-- aria-labelledby means the text of the element with id="overlay-title" is the label for the dialog -->
     <h1 id="overlay-title">Audio Visualizer</h1>
     <p>Play music anywhere on your computer and watch it come to life!</p>
@@ -51,7 +54,12 @@
       <li><b>?</b> (bottom left): reopen these instructions.</li>
     </ul>
 
-    <p class="note">Works best in desktop Chrome or Edge. Nothing is recorded or saved.</p>
+    <p class="note">
+      Works best in desktop Chrome or Edge. Nothing is recorded or saved.
+      If sharing fails with a <i>"Your audio device blocked sharing"</i> error, try a different output device, share a
+      browser tab instead of Entire Screen, or use the demo sound below. This is due to driver
+      and browser limitations.
+    </p>
 
     <button id="start" type="button">Start</button>
     <p id="error" role="alert"></p>
