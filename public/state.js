@@ -5,6 +5,13 @@ export const state = {
   smoothing: 0.7, // Low value = more jittery bars, High value = more smooth bars
 
   barCount: 48,
-  hue: 0, // 0 = red, matches the site theme
-  // trailFade: 0.18,
+  maxBarHeight: 0.6, // Max height of bars as a fraction of screen height
+  hue: 0,
+
+  beatThreshold: 1.3, // How far above its own recent average bass must jump to count as a beat
+  minBeatVolume: 0.5, // Minimum volume of bass to count as a beat
+  burstSize: 50, // Relative number of particles spawned per "beat"
+  particleGravity: 60, // Gravity applied to particles, pulls them down over time
+  particleSpeed: 1, // Multiplier for particle speed
+  particleLife: 1 // Multiplier for particle life
 };

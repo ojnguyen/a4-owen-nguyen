@@ -4,6 +4,8 @@ import { getFrame } from "./audio.js";
 const canvas = document.getElementById("visualizer");
 const g = canvas.getContext("2d"); // 2D rendering context for drawing on the canvas.
 
+let bassAvg = 0; // Recent average bass level
+let lastBeatTime = 0; // Timestamp of last beat 
 let W = 0, H = 0; // Size of canvas in CSS pixels (not device pixels), updated in resize()
 
 // NOTE: CSS pixels vs Device pixels:
@@ -61,7 +63,7 @@ function clearcanvas() {
 // Button-up bars, left (bass) to right (treble)
 function drawBars(count) {
   const barW = W / count;
-  const maxHeight = H * 0.6; // bars cap at 60% of screen height
+  const maxHeight = H * state.maxBarHeight; // bars cap at maxBarHeight% of screen height
 
   for (let i = 0; i < count; i++) {
     const pos = i / count; // Position of bar in [0, 1]
@@ -96,16 +98,111 @@ function drawWave(time) {
   g.stroke(); // Paints line
 }
 
+// Returns "strength" of beat detected (0 if no beat)
+function detectBeat(freq, sampleRate, now) {
+  const binHz = sampleRate / (2 * freq.length); // Frequency resolution of each bin in Hz (e.g. 44100 Hz sample rate and 1024 bins = 21.53 Hz per bin)
+  const bassBins = Math.max(3, Math.round(150 / binHz)); // Number of bins to consider as "bass"
+  let sum = 0;
+  for (let i = 1; i < bassBins; i++) { // Ignore bin 0 (DC offset)
+    sum += freq[i]; // Sum the volume levels of all bass frequency bins
+  }
+  const bass = sum / (bassBins - 1) / 255; // Avg volume of bass frequencies, [0, 1]
+  const isBeat = bass > state.minBeatVolume && bass > bassAvg * state.beatThreshold && now - lastBeatTime > 100;
+  bassAvg += (bass - bassAvg) * 0.05; // Update bass avg
+  if (isBeat) {
+    lastBeatTime = now;
+  }
+  return isBeat ? bass : 0;
+}
+
+const MAX_PARTICLES = 800;
+const particles = [];
+
+// Spawns a burst of count particles at x, y
+function spawnBurst(x, y, count, hue) {
+  for (let i = 0; i < count && particles.length < MAX_PARTICLES; i++) {
+    const angle = -Math.PI / 2 + (Math.random() - 0.5) * 1.4;
+    const speed = (80 + Math.random() * 160) * state.particleSpeed;
+    const life = (0.6 + Math.random() * 0.6) * state.particleLife;
+
+    particles.push({
+      x, y,
+      vx: Math.cos(angle) * speed,
+      vy: Math.sin(angle) * speed,
+      life: life,
+      maxLife: life,
+      hue: hue + Math.random() * 20 - 10
+    });
+  }
+}
+
+// Updates particle positions and removes dead particles
+function updateParticles(dt) {
+  for (let i = particles.length - 1; i >= 0; i--) {
+    const p = particles[i];
+    p.life -= dt;
+    if (p.life <= 0) {
+      particles.splice(i, 1); // Remove dead particle
+      continue;
+    }
+
+    // Updating positions based on velocity and dt
+    p.vy += state.particleGravity * dt;   // gentle gravity, pulls sparks back downward over time
+    p.x += p.vx * dt;
+    p.y += p.vy * dt;
+  }
+}
+
+// Draws particles on the canvas
+function drawParticles() {
+  g.globalCompositeOperation = "lighter"; // Overlapping particles glow brighter (https://developer.mozilla.org/en-US/docs/Web/API/CanvasRenderingContext2D/globalCompositeOperation)
+  for (const p of particles) {
+    const t = p.life / p.maxLife; // Transparency based on how much life is left
+    g.fillStyle = `hsl(${p.hue}, 90%, 65%, ${t})`;
+    g.beginPath();
+    g.arc(p.x, p.y, 1.5 + 2.5 * t, 0, Math.PI * 2); // Particle radius shrinks over time
+    g.fill();
+  }
+  g.globalCompositeOperation = "source-over"; // reset global composite operation (to prevent fillRect blending)
+}
+
+// Finds which bar is currently loudest (so particle bursts spawn from the right spot)
+function indexOfLoudestBassBar(count) {
+    const bassBars = Math.max(1, Math.round(count * 0.15));
+  let loudest = 0;
+  for (let i = 1; i < bassBars; i++) {
+    if (displayedBars[i] > displayedBars[loudest]) {
+      loudest = i;
+    }
+  }
+  return { i: loudest, value: displayedBars[loudest] };
+}
+
 // Drawing loop, called every animation frame
 let running = false;
+let last = 0;
 
-function frame() {
+function frame(now) {
+  const dt = Math.min((now - last) / 1000, 0.05); // Time (in seconds) since last frame
+  last = now;
+
   const { freq, time, sampleRate } = getFrame(); // Get the latest audio frame data
 
   clearcanvas(); // Clear the canvas
   computeDisplayedBars(freq, sampleRate, state.barCount); // Compute the displayed bars for the current frame
   drawBars(state.barCount); // Draw the bars for the current frame
   drawWave(time); // Draw the waveform line through the middle
+
+  const beatStrength = detectBeat(freq, sampleRate, now);
+  if (beatStrength > 0) {
+    const barW = W / state.barCount;
+    const { i, value } = indexOfLoudestBassBar(state.barCount);
+    const barH = Math.min(1, displayedBars[i] * state.sensitivity) * (H * state.maxBarHeight); // Height of bar scaled by sensitivity, capped at maxHeight
+    spawnBurst((i + 0.5) * barW, H - barH, state.burstSize * value, state.hue); //  Spawns burst at x: center of bar, y: top of bar
+    // console.log("Particles spawned:", state.burstSize * value, "at bar", i, "with strength", beatStrength.toFixed(2));
+  }
+  updateParticles(dt);
+  drawParticles();
 
   requestAnimationFrame(frame); // Request the next frame
 }
