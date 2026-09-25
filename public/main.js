@@ -1,8 +1,9 @@
-import { initAudio, useDemo, getFrame, useSystemAudio, onEnded } from "./audio.js";
+import { initAudio, useDemo, useSystemAudio, onEnded } from "./audio.js";
 import { startVisualizer } from './visualizer.js';
+import "./panel.js";
 
 const overlay = document.getElementById("overlay");
-const startButton = document.getElementById("start");
+const startOrCloseButton = document.getElementById("start");
 const helpButton = document.getElementById("help");
 const demoButton = document.getElementById("demo");
 const errorBox = document.getElementById("error");
@@ -45,10 +46,22 @@ onEnded(() => {
   overlay.showModal();
 });
 
-startButton.addEventListener("click", () => begin(useSystemAudio));
-demoButton.addEventListener("click", () => begin(useDemo));
+startOrCloseButton.addEventListener("click", () => {
+  // If its clicked while running (says "Close"), then close the modal
+  if (running) {
+    overlay.close();
+  } else {
+    begin(useSystemAudio);
+  }
+});
+
+demoButton.addEventListener("click", () => {
+  if (!running) {
+    begin(useDemo);
+  }
+});
 
 helpButton.addEventListener("click", () => {
-  startButton.textContent = running ? "Close" : "Start";
+  startOrCloseButton.textContent = running ? "Close" : "Start";
   overlay.showModal();
 });

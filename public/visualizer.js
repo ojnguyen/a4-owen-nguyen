@@ -3,6 +3,7 @@ import { getFrame } from "./audio.js";
 
 const canvas = document.getElementById("visualizer");
 const g = canvas.getContext("2d"); // 2D rendering context for drawing on the canvas.
+const pointer = { x: 0, y: 0, active: false, down: false };
 
 let bassAvg = 0; // Recent average bass level
 let lastBeatTime = 0; // Timestamp of last beat 
@@ -80,7 +81,7 @@ function drawBars(count) {
 // time: 2048 samples of waveform data, each sample in [0, 255], where 128 = no sound, 0 = max negative volume, 255 = max positive volume
 function drawWave(time) {
   g.strokeStyle = "#eeeeee";
-  g.lineWidth = 2;
+  g.lineWidth = state.waveLineWidth;
   g.beginPath();
 
   // Draws line through middle of bars
@@ -88,7 +89,7 @@ function drawWave(time) {
   // - line's x pos is based on sample index
   for (let i = 0; i < time.length; i++) {
     const x = (i / (time.length - 1)) * W;
-    const y = H / 2 + ((time[i] - 128) / 128) * (H * 0.15); // amplitude scaled to 15% of screen height
+    const y = (H * state.waveYPos) + ((time[i] - 128) / 128) * (H * state.waveAmplitude); // amplitude scaled to state.waveAmplitude% of screen height.
     if (i === 0) {
       g.moveTo(x, y);
     } else {
@@ -119,10 +120,10 @@ const MAX_PARTICLES = 800;
 const particles = [];
 
 // Spawns a burst of count particles at x, y
-function spawnBurst(x, y, count, hue) {
+function spawnBurst(x, y, count, hue, intensity = 1) {
   for (let i = 0; i < count && particles.length < MAX_PARTICLES; i++) {
     const angle = -Math.PI / 2 + (Math.random() - 0.5) * 1.4;
-    const speed = (80 + Math.random() * 160) * state.particleSpeed;
+    const speed = (80 + Math.random() * 160) * state.particleSpeed * intensity;
     const life = (0.6 + Math.random() * 0.6) * state.particleLife;
 
     particles.push({
@@ -136,6 +137,13 @@ function spawnBurst(x, y, count, hue) {
   }
 }
 
+// Spawns a burst of particles at x, y, scaled by bassLevel [0, 1]
+function spawnScaledBurst(x, y, baseSize, hue, bassLevel) {
+  const count = baseSize * (0.5 + bassLevel * 2 * (state.beatImpact*0.5));
+  const intensity = 0.6 + bassLevel * 1.4 * state.beatImpact;
+  spawnBurst(x, y, count, hue, intensity);
+}
+
 // Updates particle positions and removes dead particles
 function updateParticles(dt) {
   for (let i = particles.length - 1; i >= 0; i--) {
@@ -144,6 +152,16 @@ function updateParticles(dt) {
     if (p.life <= 0) {
       particles.splice(i, 1); // Remove dead particle
       continue;
+    }
+
+    // Cursor particle pull
+    if (true) { // contemplating between if pointer.active or always pulling
+      const dx = pointer.x - p.x;
+      const dy = pointer.y - p.y;
+      const dist = Math.hypot(dx, dy) + 5; // +30 is there to prevent particles being pulled too strongly when close to cursor
+      // const pull = state.pointerPull / dist; // stronger when close, weaker far away
+      p.vx += (dx / dist) * state.pointerPull * dt;
+      p.vy += (dy / dist) * state.pointerPull * dt;
     }
 
     // Updating positions based on velocity and dt
@@ -166,17 +184,46 @@ function drawParticles() {
   g.globalCompositeOperation = "source-over"; // reset global composite operation (to prevent fillRect blending)
 }
 
-// Finds which bar is currently loudest (so particle bursts spawn from the right spot)
-function indexOfLoudestBassBar(count) {
-    const bassBars = Math.max(1, Math.round(count * 0.15));
-  let loudest = 0;
+// Returns bass info for the current frame
+function getBassStats(count) {
+  const bassBars = Math.max(1, Math.round(count * 0.15));
+  let sum = 0, peakIndex = 1, peakValue = 0;
   for (let i = 1; i < bassBars; i++) {
-    if (displayedBars[i] > displayedBars[loudest]) {
-      loudest = i;
+    sum += displayedBars[i];
+    if (displayedBars[i] > peakValue) {
+      peakValue = displayedBars[i];
+      peakIndex = i;
     }
   }
-  return { i: loudest, value: displayedBars[loudest] };
+  const avg = sum / (bassBars - 1);
+  
+  return { avg, peakValue, peakIndex };
 }
+
+canvas.addEventListener("pointermove", (e) => {
+  pointer.x = e.clientX;
+  pointer.y = e.clientY;
+  pointer.active = true;
+});
+
+canvas.addEventListener("pointerleave", () => {
+  pointer.active = false;
+});
+
+canvas.addEventListener("pointerup", () => {
+  pointer.down = false;
+});
+
+canvas.addEventListener("pointercancel", () => {
+  pointer.down = false;
+});
+
+canvas.addEventListener("pointerdown", (e) => {
+  pointer.x = e.clientX;
+  pointer.y = e.clientY;
+  pointer.active = true;
+  pointer.down = true;
+});
 
 // Drawing loop, called every animation frame
 let running = false;
@@ -193,13 +240,17 @@ function frame(now) {
   drawBars(state.barCount); // Draw the bars for the current frame
   drawWave(time); // Draw the waveform line through the middle
 
+  if (pointer.down) {
+    const { avg } = getBassStats(state.barCount);
+    spawnScaledBurst(pointer.x, pointer.y, state.pointerBurstSize, state.hue, avg);
+  }
+
   const beatStrength = detectBeat(freq, sampleRate, now);
   if (beatStrength > 0) {
     const barW = W / state.barCount;
-    const { i, value } = indexOfLoudestBassBar(state.barCount);
-    const barH = Math.min(1, displayedBars[i] * state.sensitivity) * (H * state.maxBarHeight); // Height of bar scaled by sensitivity, capped at maxHeight
-    spawnBurst((i + 0.5) * barW, H - barH, state.burstSize * value, state.hue); //  Spawns burst at x: center of bar, y: top of bar
-    // console.log("Particles spawned:", state.burstSize * value, "at bar", i, "with strength", beatStrength.toFixed(2));
+    const { peakIndex, peakValue } = getBassStats(state.barCount);
+    const barH = Math.min(1, displayedBars[peakIndex] * state.sensitivity) * (H * state.maxBarHeight); // Height of bar scaled by sensitivity, capped at maxHeight
+    spawnScaledBurst((peakIndex + 0.5) * barW, H - barH, state.burstSize, state.hue, peakValue); //  Spawns burst at x: center of bar, y: top of bar
   }
   updateParticles(dt);
   drawParticles();

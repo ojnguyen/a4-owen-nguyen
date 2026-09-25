@@ -42,7 +42,7 @@ export async function useDemo() {
   osc.connect(analyzer); // osc -> analyzer -> gainNode -> ctx.destination
   osc.start();
 
-  gainNode.gain.value = 0.15; // Actually producing sound, so need to set gain to something other than 0.
+  gainNode.gain.value = 0.1; // Actually producing sound, so need to set gain to something other than 0.
 }
 
 // Called every animation frame to get latest audio data
