@@ -1,62 +1,55 @@
-Assignment 4 - Creative Coding: Interactive Multimedia Experiences
-===
+## Interactive System Audio Visualizer
+https://a4-owen-nguyen.onrender.com/
 
-Due: September 25th, by 1:59 PM.
+This application is a user-interactive audio-reactive visualizer built using the Web Audio API and Canvas. It captures audio playing on your computer (whether that is in another application, or another tab)
+and generates an audio-reactive bar with beat-triggered particle effects AND a waveform display to visualize the music in real time. This application is user interactive too; particles are drawn towards the
+user's mouse, users can create particle bursts by clicking, and users can augment certain parameters of the audio visualizer. 
 
-For this assignment we will focus on client-side development using popular audio/graphics/visualization technologies. The goal of this assignment is to refine our JavaScript knowledge while exploring the multimedia capabilities of the browser.
+**GOAL**
+- Visualize live system audio
+- Turn it into a frequency display (bars) and a waveform display
+- Implement beat detection based on the average volume of the bass frequency, which affects particle settings
+- Allow users to fine-tune the application to their liking, while also including some visualization presets
 
-[WebAudio / Canvas Tutorial](https://github.com/cs-4241-26a/cs-4241-26a.github.io/blob/main/using.webaudio_and_canvas.md)  
-[SVG + D3 tutorial](https://github.com/cs-4241-26a/cs-4241-26a.github.io/blob/main/using.svg_and_d3.md)  
+**CHALLENGES**
+- Mapping frequency data into visually appealing bars required logarithmic spacing
+- Implementing beat detection was difficult; compares the current bass energy to its own recent average, filtered by a threshold
+- Getting system audio to work was buggy, until I figured out certain audio drivers like my Logitech PRO X Headset's block system audio
+with a 'NotReadableError'. In these cases, switching to a different audio output or simply switching to tab audio seemed like it did the trick.
 
-Baseline Requirements
----
+**STARTING INSTRUCTIONS**
+1. Press `Start` and choose `Entire Screen` in the share dialog.
+2. Tick `Share with system audio`.
+3. Play music anywhere on your computer!
+- Works best in desktop Chrome or Edge. Nothing is recorded or saved. If sharing fails with a "Your audio device blocked sharing" error, try a 
+different output device, share a browser tab instead of Entire Screen, or use the demo sound below. This is due to possible driver and browser limitations.
 
-Your application is required to implement the following functionalities:
+![alt text](image.png)
 
-- A server created using Express. This server can be as simple as needed.
-- A client-side interactive experience using at least one of the following web frameworks.
-  - [Three.js](https://threejs.org/): A library for 3D graphics / VR experiences
-  - [D3.js](https://d3js.org): A library that is primarily used for interactive data visualizations
-  - [Canvas](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API): A 2D raster drawing API included in all modern browsers
-  - [SVG](https://developer.mozilla.org/en-US/docs/Web/API/Canvas_API): A 2D vector drawing framework that enables shapes to be defined via XML.
-  - [Web Audio API](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API): An API for audio synthesis, analysis, processing, and file playback.
-  - [KAPLAY](https://kaplayjs.com): Browser-based gaming platform
-- A user interface for interaction with your project, which must expose at least four parameters for user control. [tweakpane](https://cocopon.github.io/tweakpane/) is highly recommended for this, but you can also use regular HTML `<input>` tags (the `range` type is useful to create sliders). You might also explore interaction by tracking mouse movement via the `window.onmousemove` event handler in tandem with the `event.clientX` and `event.clientY` properties. Consider using the [Pointer Events API](https://developer.mozilla.org/en-US/docs/Web/API/Pointer_events) to ensure that that both mouse and touch events will both be supported in your app.
-- Your application should display basic documentation for the user interface when the application first loads.
+**CONTROLS**
+- Moving your pointer will pull particles toward it affected by the `pointer pull` setting.
+- Clicking/holding your pointer will spawn a burst of particles affected by the `pointer burst size` setting.
+- The panel (top right) allows you to tweak certain parameters of the audio visualizer. 3 Presets come included (Normal, Crazy, Chill).
+- The help button (bottom left) reopens these instructions.
 
-The interactive experience should possess a reasonable level of complexity. Some examples:
-### Three.js
-- A generative algorithm creates simple agents that move through a virtual world. Your interface controls the behavior / appearance of these agents.
-- A simple 3D game... you really want this to be a simple as possible or it will be outside the scope of this assignment.
-- An 3D audio visualization of a song of your choosing. User interaction should control aspects of the visualization. 
-### Canvas
-- Implement a generative algorithm such as [Conway's Game of Life](https://bitstorm.org/gameoflife/) (or 1D cellular automata) and provide interactive controls. Note that the Game of Life has been created by 100s of people using `<canvas>`; we'll be checking to ensure that your implementation is not a copy of these.
-- Design a 2D audio visualizer of a song of your choosing. User interaction should control visual aspects of the experience. 
-### Web Audio API
-- Create a screen-based musical instrument using the Web Audio API. You can use projects such as [Interface.js](http://charlie-roberts.com/interface/) or [Nexus UI](https://nexus-js.github.io/ui/api/#Piano) to provide common musical interface elements, or use tweakpane in combination with mouse/touch events (use the Pointer Events API). Your GUI should enable users to control aspects of sound synthesis. If you want to use higher-level instruments instead of the raw WebAudio API sounds, consider trying the instruments provided by [Tone.js](https://tonejs.github.io) or [Gibber](https://github.com/charlieroberts/gibber.audio.lib).
-### D3.js
-- Create visualizations using the datasets found at [Awesome JSON Datasets](https://github.com/jdorfman/Awesome-JSON-Datasets). Experiment with providing different visualizations of the same data set, and providing users interactive control over visualization parameters and/or data filtering. Alternatively, create a single visualization with using one of the more complicated techniques shown at [d3js.org](d3js.org) and provide meaningful points of interaction for users.
+**PANEL PARAMETERS**
 
-Deliverables
----
+![alt text](image-1.png)
 
-Do the following to complete this assignment:
-
-1. Implement your project with the above requirements.
-3. Test your project to make sure that when someone goes to your main page on Glitch/Heroku/etc., it displays correctly.
-4. Ensure that your project has the proper naming scheme `a4-firstname-lastname` so we can find it.
-5. Fork this repository and modify the README to the specifications below. *NOTE: If you don't use Glitch for hosting (where we can see the files) then you must include all project files that you author in your repo for this assignment*.
-6. Create and submit a Pull Request to the original repo. Name the pull request using the following template: `a4-firstname-lastname`.
-
-Sample Readme (delete the above when you're ready to submit, and modify the below so with your links and descriptions)
----
-
-## Your Web Application Title
-
-your hosting link e.g. http://a4-charlieroberts.me
-
-Include a very brief summary of your project here. Images are encouraged when needed, along with concise, high-level text. Be sure to include:
-
-- the goal of the application
-- challenges you faced in realizing the application
-- the instructions you present in the website should be clear enough to use the application, but if you feel any need to provide additional instructions please do so here.
+- `sensitivity`: Amplifies how much bars react to volume
+- `smoothing`: Audio smoothing; a lower value means more jittery bars
+- `barCount`: Number of displayed bars
+- `max bar height`: Caps bar height as a fraction of screen height
+- `hue`: Base color of bars and particles
+- `line width`: Thickness of waveform line
+- `vertical position`: Vertical position of waveform line
+- `amplitude`: How far vertically above/below center the waveform swings 
+- `threshold`: How far above its recent average bass must spike (in volume) to register as a "beat"
+- `min volume`: Minimum bass level required for a "beat"
+- `beat burst size`: Base particle count spawned per "beat" (however, it is scaled by bass volume)
+- `gravity`: Downward pull of particles
+- `speed`: Multiplier on particle launch velocity
+- `lifetime`: Multiplier on how long particles last before fading
+- `click burst size`: Base particle count spawned per user mouse click / each frame while holding pointer down (however, it is scaled by bass volume)
+- `pointer pull`: Strength of particle pull towards user mouse
+- `particle beat impact`: How strongly bass loudness scales burst size and speed on a "beat"

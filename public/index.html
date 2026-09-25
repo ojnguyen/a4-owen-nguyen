@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-  <title>Audio Visualizer</title>
+  <title>Interactive System Audio Visualizer</title>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <!-- Learned from the reading, had to add this to make the page responsive -->
@@ -36,28 +36,29 @@
   <!-- Instructions + Start button -->
   <dialog id="overlay" aria-labelledby="overlay-title">
     <!-- aria-labelledby means the text of the element with id="overlay-title" is the label for the dialog -->
-    <h1 id="overlay-title">Audio Visualizer</h1>
+    <h1 id="overlay-title">Interactive System Audio Visualizer</h1>
+    <p class="author">Developed by Owen Nguyen</p>
     <p>Play music anywhere on your computer and watch it come to life!</p>
 
     <ol>
       <li>Press <b>Start</b> and choose <b>Entire Screen</b> in the share dialog.</li>
-      <li>Tick <b>Share system audio</b>.
+      <li>Tick <b>Share with system audio</b>.
       </li>
       <li>Play some music anywhere on your computer!</li>
     </ol>
 
     <h2>Controls</h2>
     <ul>
-      <li><b>Move</b> your pointer: pull particles toward it.</li>
-      <li><b>Click</b> your pointer: create a shockwave.</li>
-      <li><b>Panel</b> (top right): tweak sensitivity, looks, and particles.</li>
-      <li><b>?</b> (bottom left): reopen these instructions.</li>
+      <li>Moving your pointer will pull particles toward it affected by the <b>pointer pull</b> setting.</li>
+      <li>Clicking/holding your pointer will spawn a burst of particles affected by the <b>pointer burst size</b> setting.</li>
+      <li>The panel (top right) allows you to tweak certain parameters of the audio visualizer. 3 Presets come included (Normal, Crazy, Chill).</li>
+      <li>The help button (bottom left) reopens these instructions.</li>
     </ul>
 
     <p class="note">
       Works best in desktop Chrome or Edge. Nothing is recorded or saved.
       If sharing fails with a <i>"Your audio device blocked sharing"</i> error, try a different output device, share a
-      browser tab instead of Entire Screen, or use the demo sound below. This is due to driver
+      browser tab instead of Entire Screen, or use the demo sound below. This is due to possible driver
       and browser limitations.
     </p>
 
